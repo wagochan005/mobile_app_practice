@@ -1,46 +1,38 @@
 import 'package:flutter/material.dart';
-
-// class MyTheme extends ThemeExtension<MyTheme> {
-//   const MyTheme({
-//     required this.themeColor,
-//   });
-//
-//   final Color? themeColor;
-//
-//   @override
-//   MyTheme copyWith({Color? themeColor}) { // 任意のフィールドを変更したコピーをインスタンス化するメソッド
-//     return MyTheme(
-//       themeColor: themeColor ?? this.themeColor,
-//     );
-//   }
-//
-//   @override
-//   MyTheme lerp(MyTheme? other, double t) { // テーマの変化を線型補完するメソッド(テーマ変更時にアニメーション処理される)
-//     if (other is! MyTheme) {
-//       return this;
-//     }
-//     return MyTheme(
-//       themeColor: Color.lerp(themeColor, other.themeColor, t),
-//     );
-//   }
-// }
+import 'package:go_router/go_router.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    home: FirstScreen(),
-  ));
+  runApp(
+    MaterialApp.router(
+      routerConfig: _router,
+    ),
+  );
 }
+
+final _router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const FirstScreen(),
+      routes: [
+        GoRoute(
+          path: 'second',
+          builder: (context, state) => const SecondScreen(),
+          routes: [
+            GoRoute(
+              path: 'third',
+              builder: (context, state) => const ThirdScreen(),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ],
+);
 
 // アプリ起動時に表示されるFirstScreenメソッド
-class FirstScreen extends StatefulWidget {
+class FirstScreen extends StatelessWidget {
   const FirstScreen({super.key});
-
-  @override
-  State<StatefulWidget> createState() => _FirstScreenState();
-}
-
-class _FirstScreenState extends State<FirstScreen> {
-  int _number = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -52,23 +44,23 @@ class _FirstScreenState extends State<FirstScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'number = $_number',
+            ElevatedButton(
+              child: const Text('FirstからFirstへ'),
+              onPressed: (){
+                GoRouter.of(context).push('/');
+              },
             ),
             ElevatedButton(
-                onPressed: () async {
-                  final newNumber = await Navigator.of(context).push<int>(
-                    MaterialPageRoute(
-                        builder: (_) =>  SecondScreen(number: _number),
-                    ),
-                  );
-                  setState(() {
-                    if (newNumber != null) {
-                      _number = newNumber;
-                    }
-                  });
-                },
-                child: const Text('Secondへ'),
+              child: const Text('FirstからSecondへ'),
+              onPressed: (){
+                GoRouter.of(context).push('/second');
+              },
+            ),
+            ElevatedButton(
+              child: const Text('FirstからThirdへ'),
+              onPressed: (){
+                GoRouter.of(context).go('/second/third');
+              },
             ),
           ],
         ),
@@ -79,30 +71,34 @@ class _FirstScreenState extends State<FirstScreen> {
 
 // 画面遷移先として用意したSecondScreenウィジェット
 class SecondScreen extends StatelessWidget {
-  const SecondScreen({super.key, required this.number});
-
-  final int number;
+  const SecondScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('IncrementScreen'),
+        title: const Text('SecondScreen'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              child: const Text('Increment'),
-              onPressed: () {
-                Navigator.of(context).pop(number + 1);
+              child: const Text('SecondからSecondへ'),
+              onPressed: (){
+                GoRouter.of(context).push('/second');
               },
             ),
             ElevatedButton(
-              child: const Text('Decrement'),
+              child: const Text('SecondからThirdへ'),
               onPressed: () {
-                Navigator.of(context).pop(number - 1);
+                GoRouter.of(context).push('/second/third');
+              },
+            ),
+            ElevatedButton(
+              child: const Text('戻る'),
+              onPressed: () {
+                GoRouter.of(context).pop();
               },
             ),
           ],
@@ -111,59 +107,31 @@ class SecondScreen extends StatelessWidget {
     );
   }
 }
-//
-// class MyApp extends StatefulWidget {
-//   const MyApp({super.key});
-//
-//   @override
-//   State<StatefulWidget> createState() => _MyAppState();
-// }
-//
-// class _MyAppState extends State<MyApp> {
-//   bool _isDarkMode = false;
-//
-//   void _toggleDarkMode() {
-//     setState(() {
-//       _isDarkMode = !_isDarkMode;
-//     });
-//   }
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       theme: ThemeData(
-//         colorSchemeSeed: Colors.green,
-//         extensions: const [MyTheme(themeColor: Color(0xFF0000FF))],
-//       ),
-//       darkTheme: ThemeData(
-//         colorSchemeSeed: Colors.deepPurple,
-//         brightness: Brightness.dark,
-//         extensions: const [MyTheme(themeColor: Color(0xFFFF0000))],
-//       ),
-//       themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
-//       home: Scaffold(
-//         body: const Center(
-//           child: ThemedWidget(),
-//         ),
-//         floatingActionButton: FloatingActionButton(
-//             onPressed: () {
-//               _toggleDarkMode();
-//             },
-//           child: const Icon(Icons.settings_brightness),
-//         ),
-//       ),
-//     );
-//   }
-// }
-//
-// class ThemedWidget extends StatelessWidget {
-//   const ThemedWidget({super.key});
-//
-//   @override
-//   Widget build(BuildContext context){
-//     final themeData = Theme.of(context); // ofメソッドを使ってThemeDataクラスのインスタンスを取得する
-//     final myTheme = themeData.extension<MyTheme>()!; // extensionメソッドを使ってMyThemeクラスのインスタンスを取得する
-//     final color = myTheme.themeColor;
-//     return Container(width: 100, height: 100, color: color);
-//   }
-// }
+
+// 画面遷移先として用意したThirdScreenウィジェット
+class ThirdScreen extends StatelessWidget {
+  const ThirdScreen({super.key});
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ThirdScreen'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              child: const Text('戻る'),
+              onPressed: (){
+                GoRouter.of(context).pop();
+              },
+            ),
+          ],
+        )
+      ),
+    );
+  }
+}
+
